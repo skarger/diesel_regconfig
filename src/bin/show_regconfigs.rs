@@ -16,6 +16,6 @@ fn main() {
 
     println!("Displaying {} regconfigs", results.len());
     for regconfig in results {
-        println!("{}", regconfig.id);
+        println!("{}: {}", regconfig.id, "<column value>");
     }
 }
