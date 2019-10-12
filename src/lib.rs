@@ -18,3 +18,4 @@ pub fn establish_connection() -> PgConnection {
 
 pub mod schema;
 pub mod models;
+pub mod types;
