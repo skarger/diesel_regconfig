@@ -98,7 +98,7 @@ Locally I am using Postgres 11.2, although any version that supports [Full Text 
 cp .env.example .env
 ```
 
-Change the `DATABASE_URL` in that file if you wish, then:
+Change the `DATABASE_URL` in the `.env` file if you wish, then:
 
 ```
 diesel setup
