@@ -1,29 +1,17 @@
 Diesel regconfig type
 ===
 
-## Creation
+## How to Install
 
-### How I created this repo
+At the time of creating this repo, the current `diesel` version is `1.4.2`.
 
-Created a lib crate:
-```
-cargo new --lib diesel_regconfig
-```
+Locally I am using Postgres 11.2, although any version that supports [Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) should work for this demo.
 
-Added `diesel` and `dotenv` as dependencies.
-
-Created a database with Postgres version 11.2.
-
-```
-diesel migration generate create_regconfigs
-```
-
-### How to install locally
 ```
 cp .env.example .env
 ```
 
-Change the DATABASE_URL if you wish, then:
+Change the `DATABASE_URL` in that file if you wish, then:
 
 ```
 diesel setup
