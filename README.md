@@ -22,6 +22,11 @@ ID  TS_CONFIG_NAME
 However, unlike arbitrary strings, the only valid values are the identifiers for languages supported in your database.
 Therefore a Rust `Enum` could be a good way to represent `regconfig` values, although a `String` would be acceptable as well.
 
+The challenge is how to represent a `regconfig` column in Diesel:
+* How to represent it in the Diesel `schema.rs` and `models.rs` modules.
+* How to serialize and deserialize it.
+* How to query and insert it from Rust code.
+
 ## How to Install
 
 At the time of creating this repo, the current `diesel` version is `1.4.2`.
