@@ -1,6 +1,16 @@
 Diesel regconfig type
 ===
 
+<!-- toc -->
+
+- [Intro](#intro)
+- [Initial attempts](#initial-attempts)
+- [How to Install](#how-to-install)
+
+<!-- tocstop -->
+
+## Intro
+
 This repo exists to figure out how to support a Postgres-specific column type, `regconfig` in [Diesel](http://diesel.rs/).
 
 The `regconfig` type relates to the Postgres [Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) feature.
