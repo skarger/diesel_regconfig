@@ -3,18 +3,33 @@ Diesel regconfig type
 
 ## Creation
 
-First create a lib crate:
+### How I created this repo
+
+Created a lib crate:
 ```
 cargo new --lib diesel_regconfig
 ```
 
-Next add `diesel` and `dotenv` as dependencies.
+Added `diesel` and `dotenv` as dependencies.
 
+Created a database with Postgres version 11.2.
 
-Create a database with Postgres version 11.2.
+```
+diesel migration generate create_regconfigs
+```
 
+### How to install locally
 ```
 cp .env.example .env
 ```
 
-Change the DATABASE_URL if you wish.
+Change the DATABASE_URL if you wish, then:
+
+```
+diesel setup
+```
+
+```
+diesel migration run
+```
+
