@@ -88,6 +88,14 @@ pub mod types {
 This compiles. The question is how to use it in `schema.rs`,
 or if this is not a good approach, then what to do instead.
 
+Is it necessary to implement the `FromSql` trait for my `Regconfig` type?
+
+## Resources
+* https://docs.diesel.rs/diesel/deserialize/trait.FromSql.html
+* https://stackoverflow.com/questions/49092437/how-do-i-implement-queryable-and-insertable-for-custom-field-types-in-diesel
+* https://github.com/diesel-rs/diesel/blob/master/diesel_tests/tests/custom_types.rs
+
+
 ## How to Install
 
 At the time of creating this repo, the current `diesel` version is `1.4.2`.
