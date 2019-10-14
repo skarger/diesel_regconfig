@@ -4,7 +4,8 @@ Diesel regconfig type
 <!-- toc -->
 
 - [Intro](#intro)
-- [Initial attempts](#initial-attempts)
+- [Project structure](#project-structure)
+- [Resources](#resources)
 - [How to Install](#how-to-install)
 
 <!-- tocstop -->
