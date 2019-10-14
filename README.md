@@ -40,6 +40,20 @@ As it states on those Postgres docs,
 This is relevant to the Diesel implementation, as it means that we are not
 reading text from the DB, but rather `u32` values.
 
+This query obtains the available `regconfig` values your DB:
+
+```sql
+SELECT oid, * FROM pg_ts_config;
+
+  oid  |  cfgname
+-------+------------
+  3748 | simple
+ 13039 | danish
+ 13041 | dutch
+ 13043 | english
+...
+```
+
 When the Diesel code translates the DB values into Rust values,
 it can use any Rust type, for example `String`. Yet since the valid `regconfig`
 values are a finite set of `OIDs` representing language identifiers,
@@ -95,6 +109,10 @@ Taking the `Enum` approach, I can define the *Rust* type like so:
         Spanish,
     }
 ```
+
+It's up to you which languages you include in this enum. Two reasonable choices are
+either all of the values present in your DB,
+or only the values for languages you intend to support in the application.
 
 Notice the `#[sql_type = "Regconfig"]` macro. This refers to the custom SQL type
 we define so that the Diesel-created `schema.rs` will have a valid reference:
