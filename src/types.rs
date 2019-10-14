@@ -32,3 +32,5 @@ impl FromSql<Regconfig, Pg> for RegConfigEnum {
         }
     }
 }
+
+// TODO: implement serialization
