@@ -4,7 +4,7 @@ Diesel regconfig type
 <!-- toc -->
 
 - [Intro](#intro)
-- [Project structure](#project-structure)
+- [Implementation](#implementation)
 - [Resources](#resources)
 - [How to Install](#how-to-install)
 
@@ -12,9 +12,9 @@ Diesel regconfig type
 
 ## Intro
 
-This repo exists to demonstrate how to support a Postgres-specific column type, `regconfig` in [Diesel](http://diesel.rs/).
-The `regconfig` type relates to the Postgres [Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) feature.
+This repo exists to demonstrate how to support a Postgres-specific column type, `regconfig`, in [Diesel](http://diesel.rs/).
 
+The `regconfig` type relates to the Postgres [Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) feature.
 It represents the natural language of a searchable text document, like `english`.
 
 When querying a database with a client like `psql`, the values of `regconfig` columns
@@ -31,13 +31,12 @@ ID  TS_CONFIG_NAME
 
 However, unlike arbitrary strings, the only valid values are the identifiers
 for languages supported in your database.
-
 In fact, `regconfig` is one of several aliases
 for a Postgres [Object Identifier](https://www.postgresql.org/docs/current/datatype-oid.html).
 As it states on those Postgres docs,
 > The oid type is currently implemented as an unsigned four-byte integer.
 
-This is relevant to the Diesel implementation, as it means that we are not
+This is relevant to the Diesel implementation, as it means that we are *not*
 reading text from the DB, but rather `u32` values.
 
 This query obtains the available `regconfig` values your DB:
@@ -54,18 +53,12 @@ SELECT oid, * FROM pg_ts_config;
 ...
 ```
 
-When the Diesel code translates the DB values into Rust values,
-it can use any Rust type, for example `String`, `Enum`, or `Struct`.
-Since the valid `regconfig` values are a set of `OIDs`, a
-[tuple struct](https://doc.rust-lang.org/book/ch05-01-defining-structs.html#using-tuple-structs-without-named-fields-to-create-different-types)
-that wraps a `u32` value works.
-
 The challenge is how to represent a `regconfig` column in Diesel:
 * How to reference it in the Diesel `schema.rs` and `models.rs` modules.
 * How to serialize and deserialize it.
 * How to query and insert it from Rust code.
 
-## Project structure
+## Implementation
 
 First, we have a Diesel migration to create an example table:
 
@@ -100,7 +93,13 @@ error[E0412]: cannot find type `Regconfig` in this scope
 Commenting that line in `schema.rs` will allow the project to compile.
 Of course then it's impossible to reference that column from Rust code.
 
-We can define the *Rust* type like so:
+When the Diesel code translates the DB values into Rust values,
+it can use any Rust type, for example `String`, `Enum`, or `Struct`.
+Since the valid `regconfig` values are a set of `OIDs`, a
+[tuple struct](https://doc.rust-lang.org/book/ch05-01-defining-structs.html#using-tuple-structs-without-named-fields-to-create-different-types)
+that wraps a `u32` value works.
+
+We define the Rust type like so:
 
 ```rust
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression)]
@@ -117,8 +116,8 @@ we define so that the Diesel-created `schema.rs` will have a valid reference:
     pub struct Regconfig;
 ```
 
-Assuming that we define the above in `src/types.rs`, we must tell `diesel cli`
-to include it when dumping the schema:
+Assuming that we define the above in `src/types.rs`, we must update `diesel.toml`
+to tell `diesel_cli` to include it when dumping the schema:
 
 ```toml
 import_types = ["diesel::sql_types::*", "crate::types::*"]
