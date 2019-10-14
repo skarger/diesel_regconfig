@@ -2,7 +2,7 @@ table! {
     use diesel::sql_types::*;
     use crate::types::*;
 
-    regconfigs (id) {
+    example_rows (id) {
         id -> Int4,
         ts_config_name -> Regconfig,
     }

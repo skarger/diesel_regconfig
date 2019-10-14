@@ -6,16 +6,16 @@ use self::models::*;
 use self::diesel::prelude::*;
 
 fn main() {
-    use crate::schema::regconfigs::dsl::*;
+    use crate::schema::example_rows::dsl::*;
 
     let connection = establish_connection();
-    let results = regconfigs
+    let results = example_rows
         .limit(5)
-        .load::<RegConfig>(&connection)
-        .expect("Error loading regconfigs");
+        .load::<ExampleRow>(&connection)
+        .expect("Error loading example_rows");
 
-    println!("Displaying {} regconfigs", results.len());
-    for regconfig in results {
-        println!("{}: {}", regconfig.id, regconfig.ts_config_name);
+    println!("Displaying {} regconfig values:", results.len());
+    for example_row in results {
+        println!("{}: {}", example_row.id, example_row.ts_config_name);
     }
 }

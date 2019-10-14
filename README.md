@@ -55,7 +55,7 @@ The challenge is how to represent a `regconfig` column in Diesel:
 First, we have a Diesel migration to create an example table:
 
 ```sql
-CREATE TABLE regconfigs (
+CREATE TABLE example_rows (
     id SERIAL PRIMARY KEY,
     ts_config_name REGCONFIG NOT NULL DEFAULT 'english'
 );
