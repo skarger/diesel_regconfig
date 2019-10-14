@@ -115,6 +115,20 @@ import_types = ["diesel::sql_types::*", "crate::types::*"]
 To make these types work, we must also implement the serialization/deserialization.
 See `src/types.rs` for details.
 
+Finally, we define a model that leverages the Rust `Enum`:
+
+```rust
+use super::types::RegConfigEnum;
+
+#[derive(Queryable)]
+pub struct ExampleRow {
+    pub id: i32,
+    pub ts_config_name: RegConfigEnum,
+}
+```
+
+See `src/bin/` for a script that loads data from the DB into this model.
+
 ## Resources
 * https://github.com/diesel-rs/diesel/blob/master/diesel_tests/tests/custom_types.rs
 * https://docs.diesel.rs/diesel/deserialize/trait.FromSql.html
