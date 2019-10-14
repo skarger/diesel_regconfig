@@ -1,4 +1,4 @@
-use super::types::types::RegConfigEnum;
+use super::types::RegConfigEnum;
 
 #[derive(Queryable)]
 pub struct RegConfig {
