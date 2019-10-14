@@ -9,26 +9,25 @@ pub struct Regconfig;
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression)]
 #[sql_type = "Regconfig"]
-pub enum RegConfigEnum {
-    English,
-    Spanish,
-}
+pub struct RegConfig(u32);
 
-impl Display for RegConfigEnum {
+const ENGLISH: u32 = 13043;
+const SPANISH: u32 = 13063;
+
+impl Display for RegConfig {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         match *self {
-            RegConfigEnum::English => f.write_str("English"),
-            RegConfigEnum::Spanish => f.write_str("Spanish"),
+            RegConfig(ENGLISH) => f.write_str("English"),
+            RegConfig(SPANISH) => f.write_str("Spanish"),
+            _ => f.write_str("Unsupported Language"),
         }
     }
 }
 
-impl FromSql<Regconfig, Pg> for RegConfigEnum {
+impl FromSql<Regconfig, Pg> for RegConfig {
     fn from_sql(bytes: Option<&[u8]>) -> deserialize::Result<Self> {
         match u32::from_sql(bytes)? {
-            13043 => Ok(RegConfigEnum::English),
-            13063 => Ok(RegConfigEnum::Spanish),
-            x => Err(format!("Unrecognized regconfig OID: {}", x).into()),
+            oid => Ok(RegConfig(oid)),
         }
     }
 }

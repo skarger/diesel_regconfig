@@ -13,7 +13,6 @@ Diesel regconfig type
 ## Intro
 
 This repo exists to demonstrate how to support a Postgres-specific column type, `regconfig` in [Diesel](http://diesel.rs/).
-
 The `regconfig` type relates to the Postgres [Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) feature.
 
 It represents the natural language of a searchable text document, like `english`.
@@ -23,7 +22,7 @@ basically appear as strings. Given a `ts_config_name` column of type `regconfig`
 a query would look like this:
 
 ```shell script
-SELECT id, ts_config_name FROM regconfigs;
+SELECT id, ts_config_name FROM example_rows;
 
 ID  TS_CONFIG_NAME
 1   english
@@ -56,12 +55,13 @@ SELECT oid, * FROM pg_ts_config;
 ```
 
 When the Diesel code translates the DB values into Rust values,
-it can use any Rust type, for example `String`. Yet since the valid `regconfig`
-values are a finite set of `OIDs` representing language identifiers,
-a Rust `Enum` is a good choice.
+it can use any Rust type, for example `String`, `Enum`, or `Struct`.
+Since the valid `regconfig` values are a set of `OIDs`, a
+[tuple struct](https://doc.rust-lang.org/book/ch05-01-defining-structs.html#using-tuple-structs-without-named-fields-to-create-different-types)
+that wraps a `u32` value works.
 
 The challenge is how to represent a `regconfig` column in Diesel:
-* How to represent it in the Diesel `schema.rs` and `models.rs` modules.
+* How to reference it in the Diesel `schema.rs` and `models.rs` modules.
 * How to serialize and deserialize it.
 * How to query and insert it from Rust code.
 
@@ -100,20 +100,13 @@ error[E0412]: cannot find type `Regconfig` in this scope
 Commenting that line in `schema.rs` will allow the project to compile.
 Of course then it's impossible to reference that column from Rust code.
 
-Taking the `Enum` approach, I can define the *Rust* type like so:
+We can define the *Rust* type like so:
 
 ```rust
-    #[derive(Debug, PartialEq, FromSqlRow, AsExpression)]
-    #[sql_type = "Regconfig"]
-    pub enum RegConfigEnum {
-        English,
-        Spanish,
-    }
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression)]
+#[sql_type = "Regconfig"]
+pub struct RegConfig(u32);
 ```
-
-It's up to you which languages you include in this enum. Two reasonable choices are
-either all of the values present in your DB,
-or only the values for languages you intend to support in the application.
 
 Notice the `#[sql_type = "Regconfig"]` macro. This refers to the custom SQL type
 we define so that the Diesel-created `schema.rs` will have a valid reference:
@@ -132,17 +125,28 @@ import_types = ["diesel::sql_types::*", "crate::types::*"]
 ```
 
 To make these types work, we must also implement the serialization/deserialization.
-See `src/types.rs` for details.
 
-Finally, we define a model that leverages the Rust `Enum`:
+Implementing the [`FromSql`](https://docs.diesel.rs/diesel/deserialize/trait.FromSql.html) trait makes it possible to read this column from the DB:
 
 ```rust
-use super::types::RegConfigEnum;
+impl FromSql<Regconfig, Pg> for RegConfig {
+    fn from_sql(bytes: Option<&[u8]>) -> deserialize::Result<Self> {
+        match u32::from_sql(bytes)? {
+            oid => Ok(RegConfig(oid)),
+        }
+    }
+}
+```
+
+Finally, we define a model that leverages the Rust type:
+
+```rust
+use super::types::RegConfig;
 
 #[derive(Queryable)]
 pub struct ExampleRow {
     pub id: i32,
-    pub ts_config_name: RegConfigEnum,
+    pub ts_config_name: RegConfig,
 }
 ```
 
