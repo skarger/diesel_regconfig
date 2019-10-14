@@ -1,6 +1,10 @@
+use crate::types::types::Regconfig;
+
 table! {
-    regconfigs (id) {
+    use diesel::sql_types::*;
+    use super::Regconfig;
+    regconfigs {
         id -> Int4,
-        // ts_config_name -> Regconfig,
+        ts_config_name -> Regconfig,
     }
 }

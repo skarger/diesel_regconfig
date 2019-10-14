@@ -6,7 +6,7 @@ use self::models::*;
 use self::diesel::prelude::*;
 
 fn main() {
-    use diesel_regconfig::schema::regconfigs::dsl::*;
+    use crate::schema::regconfigs::dsl::*;
 
     let connection = establish_connection();
     let results = regconfigs
@@ -16,6 +16,6 @@ fn main() {
 
     println!("Displaying {} regconfigs", results.len());
     for regconfig in results {
-        println!("{}: {}", regconfig.id, "<column value>");
+        println!("{}: {}", regconfig.id, regconfig.ts_config_name);
     }
 }
