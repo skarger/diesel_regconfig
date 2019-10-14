@@ -11,7 +11,7 @@ Diesel regconfig type
 
 ## Intro
 
-This repo exists to figure out how to support a Postgres-specific column type, `regconfig` in [Diesel](http://diesel.rs/).
+This repo exists to demonstrate how to support a Postgres-specific column type, `regconfig` in [Diesel](http://diesel.rs/).
 
 The `regconfig` type relates to the Postgres [Full Text Search](https://www.postgresql.org/docs/current/textsearch.html) feature.
 
@@ -29,20 +29,47 @@ ID  TS_CONFIG_NAME
 2   spanish
 ```
 
-However, unlike arbitrary strings, the only valid values are the identifiers for languages supported in your database.
-Therefore a Rust `Enum` could be a good way to represent `regconfig` values, although a `String` would be acceptable as well.
+However, unlike arbitrary strings, the only valid values are the identifiers
+for languages supported in your database.
+
+In fact, `regconfig` is one of several aliases
+for a Postgres [Object Identifier](https://www.postgresql.org/docs/current/datatype-oid.html).
+As it states on those Postgres docs,
+> The oid type is currently implemented as an unsigned four-byte integer.
+
+This is relevant to the Diesel implementation, as it means that we are not
+reading text from the DB, but rather `u32` values.
+
+This query obtains the available `regconfig` values your DB:
+
+```sql
+SELECT oid, * FROM pg_ts_config;
+
+  oid  |  cfgname
+-------+------------
+  3748 | simple
+ 13039 | danish
+ 13041 | dutch
+ 13043 | english
+...
+```
+
+When the Diesel code translates the DB values into Rust values,
+it can use any Rust type, for example `String`. Yet since the valid `regconfig`
+values are a finite set of `OIDs` representing language identifiers,
+a Rust `Enum` is a good choice.
 
 The challenge is how to represent a `regconfig` column in Diesel:
 * How to represent it in the Diesel `schema.rs` and `models.rs` modules.
 * How to serialize and deserialize it.
 * How to query and insert it from Rust code.
 
-## Initial attempts
+## Project structure
 
-First, a Diesel migration to create an example table:
+First, we have a Diesel migration to create an example table:
 
 ```sql
-CREATE TABLE regconfigs (
+CREATE TABLE example_rows (
     id SERIAL PRIMARY KEY,
     ts_config_name REGCONFIG NOT NULL DEFAULT 'english'
 );
@@ -72,29 +99,58 @@ error[E0412]: cannot find type `Regconfig` in this scope
 Commenting that line in `schema.rs` will allow the project to compile.
 Of course then it's impossible to reference that column from Rust code.
 
-Taking the `Enum` approach, I can define a type using Diesel's `#[derive(SqlType)]`:
+Taking the `Enum` approach, I can define the *Rust* type like so:
 
 ```rust
-pub mod types {
-    #[derive(SqlType)]
-    #[postgres(oid = "3734", array_oid = "3735")]
-    pub enum Regconfig {
+    #[derive(Debug, PartialEq, FromSqlRow, AsExpression)]
+    #[sql_type = "Regconfig"]
+    pub enum RegConfigEnum {
         English,
         Spanish,
     }
+```
+
+It's up to you which languages you include in this enum. Two reasonable choices are
+either all of the values present in your DB,
+or only the values for languages you intend to support in the application.
+
+Notice the `#[sql_type = "Regconfig"]` macro. This refers to the custom SQL type
+we define so that the Diesel-created `schema.rs` will have a valid reference:
+
+```rust
+    #[derive(SqlType)]
+    #[postgres(type_name = "regconfig")]
+    pub struct Regconfig;
+```
+
+Assuming that we define the above in `src/types.rs`, we must tell `diesel cli`
+to include it when dumping the schema:
+
+```toml
+import_types = ["diesel::sql_types::*", "crate::types::*"]
+```
+
+To make these types work, we must also implement the serialization/deserialization.
+See `src/types.rs` for details.
+
+Finally, we define a model that leverages the Rust `Enum`:
+
+```rust
+use super::types::RegConfigEnum;
+
+#[derive(Queryable)]
+pub struct ExampleRow {
+    pub id: i32,
+    pub ts_config_name: RegConfigEnum,
 }
 ```
 
-This compiles. The question is how to use it in `schema.rs`,
-or if this is not a good approach, then what to do instead.
-
-Is it necessary to implement the `FromSql` trait for my `Regconfig` type?
+See `src/bin/` for a script that loads data from the DB into this model.
 
 ## Resources
-* https://docs.diesel.rs/diesel/deserialize/trait.FromSql.html
-* https://stackoverflow.com/questions/49092437/how-do-i-implement-queryable-and-insertable-for-custom-field-types-in-diesel
 * https://github.com/diesel-rs/diesel/blob/master/diesel_tests/tests/custom_types.rs
-
+* https://docs.diesel.rs/diesel/deserialize/trait.FromSql.html
+* https://docs.diesel.rs/diesel/serialize/trait.ToSql.html
 
 ## How to Install
 
